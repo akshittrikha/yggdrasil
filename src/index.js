@@ -1,6 +1,5 @@
 const { MongoClient } = require('mongodb');
 const AWS = require('aws-sdk');
-const { v4: uuidv4 } = require('uuid');
 
 class MongoDBOutboxSQS {
   constructor(config) {
@@ -11,7 +10,6 @@ class MongoDBOutboxSQS {
       region: config.awsRegion || 'ap-southeast-1',
       accessKeyId: config.awsAccessKeyId,
       secretAccessKey: config.awsSecretAccessKey,
-      endpoint: config.sqsEndpoint,
       queueUrl: config.sqsQueueUrl,
     };
 
@@ -46,7 +44,7 @@ class MongoDBOutboxSQS {
    * @returns {Object} - Result of the transaction
    */
 
-  async executeWithOutbox(collectionName, operation, eventPayload, eventType) {
+  async executeWithOutbox(collectionName, object, operation, eventPayload, eventType) {
     const db = await this.connect();
     const session = this.client.startSession();
 
@@ -56,13 +54,11 @@ class MongoDBOutboxSQS {
       await session.withTransaction(async () => {
         // 1. Perform the main operation on the target collection
         const collection = db.collection(collectionName);
-        console.log(`[ob] collection: ${collection}`);
-        result = await operation(collection, session);
+        result = await operation(object, collection, session);
 
         // 2. Insert into outbox collection
         const outboxCollection = db.collection(this.outboxCollection);
         const outboxDocument = {
-          _id: uuidv4(),
           eventType,
           payload: eventPayload,
           result,
@@ -70,8 +66,7 @@ class MongoDBOutboxSQS {
           createdAt: new Date(),
         };
 
-        const obRes = await outboxCollection.insertOne(outboxDocument, { session });
-        console.log(`[ob] obRes: ${JSON.stringify(obRes)}`);
+        await outboxCollection.insertOne(outboxDocument, { session });
       });
 
       // 3. After transaction is committed, process the outbox
@@ -100,10 +95,15 @@ class MongoDBOutboxSQS {
         // udpate status to PROCESSED
         await outboxCollection.updateOne(
           { _id: message._id },
-          { $set: { status: 'PROCESSED', processedAt: new Date() } }
+          {
+            $set: {
+            status: 'PROCESSED',
+            processedAt: new Date()
+            }
+          }
         );
       } catch (error) {
-        console.error(`[ob] Failed to process outbox message ${message._id}`, error);
+        console.error(`Failed to process outbox message ${message._id}`, error);
 
         // update status to FAILED
         await outboxCollection.updateOne(

@@ -14,7 +14,6 @@ const config = {
   awsRegion: process.env.AWS_REGION,
   awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
   awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  sqsEndpoint: process.env.SQS_ENDPOINT,
   sqsQueueUrl: process.env.SQS_QUEUE_URL
 };
 
@@ -22,23 +21,24 @@ const config = {
 const outboxHandler = new MongoDBOutboxSQS(config);
 
 // Example operation: Create a user
-async function createUser(collection, session) {
-  const user = {
-    name: 'John Doe',
-    email: 'john@example.com',
-    createdAt: new Date()
-  };
-  
-  const result = await collection.insertOne(user, { session });
+async function createUser(object, collection, session) {
+  const result = await collection.insertOne(object, { session });
   return result;
 }
 
 // Example usage
 async function main() {
+  const user = {
+    name: 'John Doe',
+    email: 'John.Doe@example.com',
+    createdAt: new Date()
+  };
+
   try {
     // Execute the operation with outbox pattern
     const result = await outboxHandler.executeWithOutbox(
       'loanrequest-outbox-test', // collection name
+      user,
       createUser, // operation to perform
       { action: 'USER_CREATED', userId: 'example-user-id' }, // event payload
       'USER_CREATION' // event type
