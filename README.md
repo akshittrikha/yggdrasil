@@ -19,43 +19,59 @@ npm install outbox-service
 ## Usage
 
 ```javascript
+require('dotenv').config(); // Load environment variables from .env file
+
 const { MongoDBOutboxSQS } = require('outbox-service');
 
-// Initialize the client
-const outboxClient = new MongoDBOutboxSQS({
-    mongoUri: 'your-mongodb-connection-string',
-    dbName: 'your-database-name',
-    outboxCollection: 'outbox', // optional, defaults to 'outbox'
-    awsRegion: 'ap-southeast-1',
-    awsAccessKeyId: 'your-aws-access-key',
-    awsSecretAccessKey: 'your-aws-secret-key',
-    sqsEndpoint: 'your-sqs-endpoint',
-    sqsQueueUrl: 'your-sqs-queue-url'
-});
+// Configuration using environment variables
+const config = {
+    mongoUri: process.env.MONGO_URI,
+    dbName: process.env.DB_NAME,
+    outboxCollection: process.env.OUTBOX_COLLECTION,
+    awsRegion: process.env.AWS_REGION,
+    awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    sqsQueueUrl: process.env.SQS_QUEUE_URL
+};
+
+// Initialize the outbox handler
+const outboxHandler = new MongoDBOutboxSQS(config);
+
+// Example operation: Create a user
+async function createUser(object, collection, session) {
+    const result = await collection.insertOne(object, { session });
+    return result;
+}
 
 // Example usage
-async function createUserWithEvent() {
+async function main() {
+    const user = {
+        name: 'John Doe',
+        email: 'John.Doe@example.com',
+        createdAt: new Date()
+    };
+
     try {
-        const result = await outboxClient.executeWithOutbox(
+        // Execute the operation with outbox pattern
+        const result = await outboxHandler.executeWithOutbox(
             'users', // collection name
-            async (collection, session) => {
-                // Your database operation
-                return await collection.insertOne(
-                    { name: 'John Doe', email: 'john@example.com' },
-                    { session }
-                );
-            },
-            { userId: 'user123', action: 'user_created' }, // event payload
-            'USER_CREATED' // event type
+            user, // data object to be inserted
+            createUser, // operation to perform
+            { action: 'USER_CREATED', userId: 'example-user-id' }, // event payload
+            'USER_CREATION' // event type
         );
 
-        console.log('User created with outbox event:', result);
+        console.log('User created successfully:', result);
     } catch (error) {
-        console.error('Failed to create user:', error);
+        console.error('Error:', error);
     } finally {
-        await outboxClient.close();
+        // Close the MongoDB connection
+        await outboxHandler.close();
     }
 }
+
+// Run the example
+main();
 ```
 
 ## Configuration
