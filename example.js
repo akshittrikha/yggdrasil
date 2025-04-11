@@ -4,7 +4,7 @@ require('dotenv').config(); // Load environment variables from .env file
  * Example usage of the MongoDB Outbox SQS package
  */
 
-const { MongoDBOutboxSQS } = require('./index'); // In your project, use: require('yggdrasil');
+const { MongoDBOutboxSQS } = require('./index'); // In your project, use: require('outbox-service');
 
 // Configuration for MongoDB and AWS SQS
 const config = {

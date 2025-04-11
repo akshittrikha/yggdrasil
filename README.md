@@ -5,7 +5,7 @@ A Node.js package that implements the Outbox Pattern for MongoDB with AWS SQS in
 ## Installation
 
 ```bash
-npm install yggdrasil
+npm install outbox-service
 ```
 
 ## Features
@@ -19,7 +19,7 @@ npm install yggdrasil
 ## Usage
 
 ```javascript
-const { MongoDBOutboxSQS } = require('yggdrasil');
+const { MongoDBOutboxSQS } = require('outbox-service');
 
 // Initialize the client
 const outboxClient = new MongoDBOutboxSQS({

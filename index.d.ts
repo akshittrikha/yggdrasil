@@ -2,7 +2,7 @@
  * Type definitions for MongoDB Outbox Pattern with SQS
  */
 
-declare module 'yggdrasil' {
+declare module 'outbox-service' {
   export interface MongoDBOutboxSQSConfig {
     /**
      * MongoDB connection string
