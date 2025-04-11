@@ -1,0 +1,36 @@
+# Development files
+.git
+.github
+.gitignore
+.npmrc
+.eslintrc
+.prettierrc
+
+# Tests
+test/
+tests/
+__tests__/
+
+# Examples
+example.js
+examples/
+
+# CI/CD
+.travis.yml
+.gitlab-ci.yml
+.github/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Editor directories and files
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db

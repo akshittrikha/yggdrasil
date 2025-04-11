@@ -1,0 +1,48 @@
+{
+  "name": "yggdrasil",
+  "version": "1.0.0",
+  "description": "MongoDB Outbox Pattern implementation with AWS SQS integration",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "src/",
+    "README.md",
+    "index.d.ts"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "echo 'No build step required for JavaScript'",
+    "prepublishOnly": "npm test"
+  },
+  "keywords": [
+    "mongodb",
+    "outbox-pattern",
+    "aws-sqs",
+    "distributed-systems",
+    "event-driven",
+    "microservices",
+    "eventual-consistency"
+  ],
+  "author": "Akshit Trikha",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akshittrikha/yggdrasil.git"
+  },
+  "bugs": {
+    "url": "https://github.com/akshittrikha/yggdrasil/issues"
+  },
+  "homepage": "https://github.com/akshittrikha/yggdrasil#readme",
+  "dependencies": {
+    "aws-sdk": "^2.1692.0",
+    "mongodb": "^4.17.2",
+    "uuid": "^9.0.1"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "types": "index.d.ts",
+  "devDependencies": {
+    "dotenv": "^16.5.0"
+  }
+}
