@@ -22,7 +22,7 @@ declare module 'outbox-service' {
     /**
      * AWS region
      */
-    awsRegion: string;
+    awsRegion?: string;
     
     /**
      * AWS access key ID
@@ -35,14 +35,29 @@ declare module 'outbox-service' {
     awsSecretAccessKey: string;
     
     /**
-     * SQS endpoint URL
-     */
-    sqsEndpoint: string;
-    
-    /**
      * SQS queue URL
      */
     sqsQueueUrl: string;
+  }
+
+  export interface OutboxDocument {
+    eventType: string;
+    payload: any;
+    result: any;
+    status: 'PENDING' | 'PROCESSED' | 'FAILED';
+    createdAt: Date;
+    processedAt?: Date;
+    errorAt?: Date;
+    error?: string;
+    _id?: any;
+  }
+
+  export interface SQSMessage {
+    id: any;
+    eventType: string;
+    payload: any;
+    result: any;
+    timestamp: string;
   }
 
   export class MongoDBOutboxSQS {
@@ -61,12 +76,13 @@ declare module 'outbox-service' {
     /**
      * Execute a transaction with the outbox pattern
      * @param collectionName - The target collection name
-     * @param operation - Function that takes a collection and performs the operation
+     * @param object - The object to be operated on
+     * @param operation - Function that performs the operation
      * @param eventPayload - The event payload to be sent to SQS
      * @param eventType - The type of event
      * @returns Result of the transaction
      */
-    executeWithOutbox<T>(collectionName: string, operation: (collection: any, session: any) => Promise<T>, eventPayload: any, eventType: string): Promise<T>;
+    executeWithOutbox<T, U>(collectionName: string, object: T, operation: (object: T, collection: any, session: any) => Promise<U>, eventPayload: any, eventType: string): Promise<U>;
     
     /**
      * Process pending outbox messages
@@ -77,6 +93,6 @@ declare module 'outbox-service' {
      * Send a message to SQS
      * @param message - The message to send
      */
-    sendToSQS(message: any): Promise<any>;
+    sendToSQS(message: OutboxDocument): Promise<AWS.SQS.SendMessageResult>;
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "outbox-service",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "MongoDB Outbox Pattern implementation with AWS SQS integration",
   "main": "index.js",
   "files": [
