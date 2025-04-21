@@ -1,6 +1,5 @@
 const { MongoClient } = require('mongodb');
 const AWS = require('aws-sdk');
-const { v4: uuidv4 } = require('uuid');
 
 class MongoDBOutboxSQS {
   constructor(config) {
@@ -11,7 +10,6 @@ class MongoDBOutboxSQS {
       region: config.awsRegion || 'ap-southeast-1',
       accessKeyId: config.awsAccessKeyId,
       secretAccessKey: config.awsSecretAccessKey,
-      endpoint: config.sqsEndpoint,
       queueUrl: config.sqsQueueUrl,
     };
 
@@ -62,7 +60,6 @@ class MongoDBOutboxSQS {
         // 2. Insert into outbox collection
         const outboxCollection = db.collection(this.outboxCollection);
         const outboxDocument = {
-          _id: uuidv4(),
           eventType,
           payload: eventPayload,
           result,
@@ -70,8 +67,7 @@ class MongoDBOutboxSQS {
           createdAt: new Date(),
         };
 
-        const obRes = await outboxCollection.insertOne(outboxDocument, { session });
-        console.log(`[ob] obRes: ${JSON.stringify(obRes)}`);
+        await outboxCollection.insertOne(outboxDocument, { session });
       });
 
       // 3. After transaction is committed, process the outbox
@@ -103,7 +99,7 @@ class MongoDBOutboxSQS {
           { $set: { status: 'PROCESSED', processedAt: new Date() } }
         );
       } catch (error) {
-        console.error(`[ob] Failed to process outbox message ${message._id}`, error);
+        console.error(`Failed to process outbox message ${message._id}`, error);
 
         // update status to FAILED
         await outboxCollection.updateOne(

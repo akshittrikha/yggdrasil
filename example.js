@@ -14,7 +14,6 @@ const config = {
   awsRegion: process.env.AWS_REGION,
   awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
   awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  sqsEndpoint: process.env.SQS_ENDPOINT,
   sqsQueueUrl: process.env.SQS_QUEUE_URL
 };
 

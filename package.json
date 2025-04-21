@@ -1,6 +1,6 @@
 {
   "name": "outbox-service",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "MongoDB Outbox Pattern implementation with AWS SQS integration",
   "main": "index.js",
   "files": [
@@ -35,8 +35,7 @@
   "homepage": "https://github.com/akshittrikha/yggdrasil#readme",
   "dependencies": {
     "aws-sdk": "^2.1692.0",
-    "mongodb": "^4.17.2",
-    "uuid": "^9.0.1"
+    "mongodb": "^4.17.2"
   },
   "engines": {
     "node": ">=12.0.0"
