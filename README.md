@@ -1,6 +1,5 @@
-# MongoDB Outbox Pattern with SQS
-
-A Node.js package that implements the Outbox Pattern for MongoDB with AWS SQS integration. This pattern ensures reliable event publishing in distributed systems by using a transactional outbox.
+# Outbox Pattern with SQS
+A package that implements the Outbox Pattern for MongoDB and PostgreSQL with AWS SQS integration to ensure reliable event publishing in distributed systems.
 
 ## Installation
 
@@ -18,18 +17,19 @@ npm install outbox-service
 
 ## Usage
 
+### MongoDB
+
 ```javascript
 const { MongoDBOutboxSQS } = require('outbox-service');
 
-// Initialize the client
-const outboxClient = new MongoDBOutboxSQS({
+// Initialize the MongoDB client
+const mongoOutboxClient = new MongoDBOutboxSQS({
     mongoUri: 'your-mongodb-connection-string',
     dbName: 'your-database-name',
     outboxCollection: 'outbox', // optional, defaults to 'outbox'
     awsRegion: 'ap-southeast-1',
     awsAccessKeyId: 'your-aws-access-key',
     awsSecretAccessKey: 'your-aws-secret-key',
-    sqsEndpoint: 'your-sqs-endpoint',
     sqsQueueUrl: 'your-sqs-queue-url'
 });
 
@@ -53,7 +53,54 @@ async function createUserWithEvent() {
     } catch (error) {
         console.error('Failed to create user:', error);
     } finally {
-        await outboxClient.close();
+        await mongoOutboxClient.close();
+    }
+}
+```
+### PostgreSQL
+
+```javascript
+const { PostgresOutboxSQS } = require('outbox-service');
+
+// Initialize the PostgreSQL client
+const pgOutboxClient = new PostgresOutboxSQS({
+    pgHost: 'your-postgres-host',
+    pgPort: 5432,
+    pgDatabase: 'your-database-name',
+    pgUser: 'your-postgres-user',
+    pgPassword: 'your-postgres-password',
+    pgSsl: false, // set to true if you need SSL
+    outboxCollection: 'outbox', // optional, defaults to 'outbox'
+    awsRegion: 'ap-southeast-1',
+    awsAccessKeyId: 'your-aws-access-key',
+    awsSecretAccessKey: 'your-aws-secret-key',
+    sqsQueueUrl: 'your-sqs-queue-url'
+});
+
+// PostgreSQL Example usage
+async function createUserWithPostgresEvent() {
+    try {
+        // Ensure the outbox table exists
+        await pgOutboxClient.ensureOutboxTable();
+        
+        const result = await pgOutboxClient.executeWithOutbox(
+            'users', // table name
+            async (client, tableName) => {
+                // Your PostgreSQL operation
+                const result = await client.query(
+                    `INSERT INTO ${tableName} (name, email, created_at) VALUES ($1, $2, $3) RETURNING *`,
+                    ['John Doe', 'john@example.com', new Date()]
+                );
+                return result.rows[0];
+            },
+            { userId: 'user123', action: 'user_created' }, // event payload
+            'USER_CREATED' // event type
+        );
+        console.log('User created:', result);
+    } catch (error) {
+        console.error('Error:', error);
+    } finally {
+        await pgOutboxClient.close();
     }
 }
 ```
@@ -61,7 +108,7 @@ async function createUserWithEvent() {
 ## Configuration
 
 | Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
+|-----------|------|----------|-------------|krta h
 | mongoUri | string | Yes | MongoDB connection string |
 | dbName | string | Yes | Database name |
 | outboxCollection | string | No | Name of the outbox collection (default: 'outbox') |
