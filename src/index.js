@@ -62,7 +62,6 @@ class MongoDBOutboxSQS {
         const outboxDocument = {
           eventType,
           payload: eventPayload,
-          result,
           status: 'PENDING',
           createdAt: new Date(),
         };
