@@ -90,7 +90,7 @@ class MongoDBOutboxSQS {
     for (const message of pendingMessages) {
       try {
         // send to sqs
-        await this.sendToSQS(message);
+        await this.sendToSQS(message.payload);
 
         // udpate status to PROCESSED
         await outboxCollection.updateOne(
