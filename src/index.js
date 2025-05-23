@@ -54,7 +54,6 @@ class MongoDBOutboxSQS {
       await session.withTransaction(async () => {
         // 1. Perform the main operation on the target collection
         const collection = db.collection(collectionName);
-        console.log(`[ob] collection: ${collection}`);
         result = await operation(collection, session);
 
         // 2. Insert into outbox collection
@@ -86,23 +85,23 @@ class MongoDBOutboxSQS {
     const outboxCollection = db.collection(this.outboxCollection);
     
     // Find all pending outbox messages
-    const pendingMessages = await outboxCollection.find({ status: 'PENDING' }).toArray();
-    for (const message of pendingMessages) {
+    const pendingEvents = await outboxCollection.find({ status: 'PENDING' }).toArray();
+    for (const event of pendingEvents) {
       try {
         // send to sqs
-        await this.sendToSQS(message.payload);
+        await this.sendToSQS(event.payload);
 
         // udpate status to PROCESSED
         await outboxCollection.updateOne(
-          { _id: message._id },
+          { _id: event._id },
           { $set: { status: 'PROCESSED', processedAt: new Date() } }
         );
       } catch (error) {
-        console.error(`Failed to process outbox message ${message._id}`, error);
+        console.error(`Failed to process outbox event ${event._id}`, error);
 
         // update status to FAILED
         await outboxCollection.updateOne(
-          { _id: message._id },
+          { _id: event._id },
           {
             $set: {
               status: 'FAILED',
@@ -122,13 +121,7 @@ class MongoDBOutboxSQS {
   async sendToSQS(message) {
     const params = {
       QueueUrl: this.sqsConfig.queueUrl,
-      MessageBody: JSON.stringify({
-        id: message._id,
-        eventType: message.eventType,
-        payload: message.payload,
-        result: message.result,
-        timestamp: new Date().toISOString(),
-      }),
+      MessageBody: JSON.stringify(message),
     };
 
     return new Promise((resolve, reject) => {
